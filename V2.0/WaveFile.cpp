@@ -6,72 +6,150 @@
 
 #include "WaveFile.h"
 
-void WaveFile::ReadInput(char *filename)
+float* WaveFile::ReadInput(char *fileName, float *signal, int *Thesize)
 {
-    ifstream inFile( filename, ios::in | ios::binary);
-    parseFile(inFile);
+    ifstream inFile( fileName, ios::in | ios::binary);
 
-    signal = NULL;
+	cout << endl << "Reading file: " << fileName << endl;
 
-    if ( bitsPerSample == 8 )
-    {
-        signalSize = dataSize;
-        signal = new short[signalSize];
-        for ( int i = 0; i < dataSize; i++ )
-            signal[i] = (short)( (unsigned char) _data[i] );
-    }
-    else if ( bitsPerSample == 16 )
-    {
-        signalSize = dataSize / 2;
-        signal = new short[signalSize];
-        short val;
-        for ( int i = 0; i < dataSize; i+=2 )
-        {
-            val = (short)( (unsigned char) _data[i] );
-            val += (short)( (unsigned char) _data[i+1] ) * 256;
-            signal[i/2] = val;
-        }
-    }
+	inFile.seekg(ios::beg);
+
+	chunkID = new char[4];
+	inFile.read( chunkID, 4);
+	cout << "Chunk ID: " << chunkID << endl;
+
+	inFile.read( (char*) &chunkSize, 4);
+	cout << "Chunk Size: " << chunkSize << endl;
+
+	format = new char[4];
+	inFile.read( format, 4);
+	cout << "Format: " << format << endl;
+
+	subChunk1ID = new char[4];
+	inFile.read( subChunk1ID, 4);
+	cout << "Subchunk1ID: " << subChunk1ID << endl;
+
+	inFile.read( (char*) &subChunk1Size, 4);
+	cout << "Subchunk1Size: " << subChunk1Size << endl;
+
+	inFile.read( (char*) &audioFormat, 2);
+	cout << "AudioForm: " << audioFormat << endl;
+
+	inFile.read( (char*) &numChannels, 2);
+	cout << "Num channels: " << numChannels << endl;
+
+	inFile.read( (char*) &sampleRate, 4);
+	cout << "sampleRate: " << sampleRate << endl;
+
+	inFile.read( (char*) &byteRate, 4);
+	cout << "Byte rate: " << byteRate << endl;
+
+	inFile.read( (char*) &blockAlign, 2);
+	cout << "Block align: " << blockAlign << endl;
+
+	inFile.read( (char*) &bitsPerSample, 2);
+	cout << "BitsPerSample: " << bitsPerSample << endl;
+
+	if(subChunk1Size == 18)
+	{
+		char *garbage;
+		garbage = new char[2];
+		inFile.read( garbage, 2);
+	}
+
+	subChunk2ID = new char[4];
+	inFile.read( subChunk2ID, 4);
+	cout << "Subchunk2ID: " << subChunk2ID << endl;
+
+	//DataSize
+	inFile.read( (char*)&dataSize, 4);
+	cout << "Data size: " << dataSize << " bytes" << endl;
+
+	//GetData
+	*Thesize = dataSize / 2;
+	int size = dataSize / 2;
+	fileData = new short[size];
+
+	for(int j = 0 ; j < size; j++)
+	{
+		inFile.read((char*) &fileData[j], 2);
+	}
+	printf("\nDone reading...now producing signal\n");
+
+	//ProduceSignal
+	short val;
+	signal = new float[size];
+	for(int i = 0; i < size; i++)
+	{
+		val = fileData[i];
+		signal[i] = (val * 1.0) / (pow(2,15) - 1);
+		if(signal[i] < -1.0)
+			signal[i] = -1.0;
+
+	}
+	inFile.close();
+
+	return signal;
 }
 
-void WaveFile::parseFile(ifstream &in)
+void WaveFile::writeWaveFile(char* fileName, int numSamples, float* signal)
 {
-    // ChunkSize header
-    in.seekg(4, ios::beg);
-    in.read( (char*) &chunkSize, 4 );
+	ofstream outFile( fileName, ios::out | ios::binary);
 
-    //SubChunk1Size header
-    in.seekg(16, ios::beg);
-    in.read( (char*) &subChunk1Size, 4 );
+	cout << endl << "Writing to file: " << fileName << endl;
 
-    // Format header
-    in.seekg(20, ios::beg);
-    in.read( (char*) &format, sizeof(short) );
+	/*  Calculate the total number of bytes for the data chunk  */
+	int chunkSize = numChannels * numSamples * (bitsPerSample / 8);
 
-    // NumChannels header
-    in.read( (char*) &channels, sizeof(short) );
+	chunkID = "RIFF";
+	outFile.write( chunkID, 4);
+	cout << "Chunk ID: " << chunkID << endl;
 
-    // SampleRate header
-    in.read( (char*) &sampleRate, sizeof(int) );
+	outFile.write( (char*) &chunkSize, 4);
+	cout << "Chunk Size: " << chunkSize << endl;
 
-    // ByteRate header
-    in.read( (char*) &byteRate, sizeof(int) );
+	format = "WAVE";
+	outFile.write( format, 4);
+	cout << "Format: " << format << endl;
 
-    // BlockAlign header
-    in.read( (char*) &blockAlign, sizeof(short) );
+	outFile.write( subChunk1ID, 4);
+	cout << "Subchunk1ID: " << subChunk1ID << endl;
 
-    // BitsPerSample header
-    in.read( (char*) &bitsPerSample, sizeof(short) );
+	subChunk1Size = 16;
+	outFile.write( (char*) &subChunk1Size, 4);
+	cout << "Subchunk1Size: " << subChunk1Size << endl;
 
-    // SubChunk2Size(data size) header
-    in.seekg(40, ios::beg);
-    in.read( (char*) &dataSize, sizeof(int) ); // read the size of the data
+	outFile.write( (char*) &audioFormat, 2);
+	cout << "AudioForm: " << audioFormat << endl;
 
+	outFile.write( (char*) &numChannels, 2);
+	cout << "Num channels: " << numChannels << endl;
 
-    // read the data chunk
-    _data = new char[dataSize];
-    in.seekg(44, ios::beg);
-    in.read(_data, dataSize);
+	outFile.write( (char*) &sampleRate, 4);
+	cout << "sampleRate: " << sampleRate << endl;
 
-    in.close(); // close the input file
+	outFile.write( (char*) &byteRate, 4);
+	cout << "Byte rate: " << byteRate << endl;
+
+	outFile.write( (char*) &blockAlign, 2);
+	cout << "Block align: " << blockAlign << endl;
+
+	outFile.write( (char*) &bitsPerSample, 2);
+	cout << "BitsPerSample: " << bitsPerSample << endl;
+
+	outFile.write( subChunk2ID, 4);
+	cout << "Subchunk2ID: " << subChunk2ID << endl;
+
+	//Data size
+	dataSize = numSamples * 2;
+	outFile.write( (char*)&dataSize, 4);
+	cout << "Data size: " << dataSize << " bytes" << endl;
+
+	int16_t val;
+	for(int i = 0; i < numSamples; i++)
+	{
+		val = (int16_t)(signal[i] * (pow(2,15) - 1));
+		outFile.write((char*)&val, 2);
+	}
+	outFile.close();
 }
