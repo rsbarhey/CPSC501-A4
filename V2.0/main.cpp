@@ -247,9 +247,7 @@ void scaleFFT(float result[], int size)
     int i = 0;
     for(i = 0; i < size; i++) 
     {
-        float val = result[i*2] / (float)size;
-        result[i*2] = val;
-        val = result[i*2+1] / (float)size;
-        result[(i*2)+1] = val;
+        result[i*2] /= (float)size;
+        result[(i*2)+1] /= (float)size;
     }
 }
