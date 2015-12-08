@@ -191,13 +191,6 @@ void fft(float data[], int nn, int isign)
     {
         if (j > i)
         {
-            //float tmp = data[j];
-            //data[j] = data[i];
-            //data[i] = tmp;
-            
-            //tmp = data[j+1];
-            //data[j+1] = data[i+1];
-            //data[i+1] = tmp;
             SWAP(data[j], data[i]);
     		   SWAP(data[j+1], data[i+1]);
     	  }

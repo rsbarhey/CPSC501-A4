@@ -71,7 +71,7 @@ float* WaveFile::ReadInput(char *fileName, float *signal, int *Thesize)
 	fileData = new short[size];
 	
 	int j;
-	for(j = 0 ; j < size; j+=3)
+	for(j = 0 ; j < size-2; j+=3)
 	{
 		inFile.read((char*) &fileData[j], 2);
 		inFile.read((char*) &fileData[j+1], 2);
