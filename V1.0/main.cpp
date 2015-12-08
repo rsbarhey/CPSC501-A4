@@ -19,6 +19,7 @@
 #include <math.h>
 #include <fstream>
 #include <iostream>
+#include <ctime>
 #include "WaveFile.h"
 using namespace std;
 
@@ -64,6 +65,8 @@ void convolve(float x[], int N, float h[], int M, float y[], int P);
 
 int main (int argc, char *argv[])
 {
+    std::clock_t start;
+    start = std::clock();
     if(argc < 4 || argc > 4)
     {
         cout << "Error using the program" << endl;
@@ -98,6 +101,7 @@ int main (int argc, char *argv[])
     convolve(inputData, inputSize, impulseData, impulseSize, outputData, outputSize);
     inputWave->writeWaveFile(argv[3], outputSize, outputData);
 
+    cout << "Time: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << endl;
     /*  End of program  */
     return 0;
 }

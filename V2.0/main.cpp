@@ -20,6 +20,7 @@
 #include <fstream>
 #include <iostream>
 #include <cstring>
+#include <ctime>
 #include "WaveFile.h"
 using namespace std;
 
@@ -71,6 +72,8 @@ void scaleFFT(float result[], int size);
 
 int main (int argc, char *argv[])
 {
+    std::clock_t start;
+    start = std::clock();
     if(argc < 4 || argc > 4)
     {
         cout << "Error using the program" << endl;
@@ -104,6 +107,7 @@ int main (int argc, char *argv[])
     overlapAdd(inputData, inputSize, impulseData, impulseSize, outputData, outputSize);
     inputWave->writeWaveFile(argv[3], outputSize, outputData);
 
+    cout << "Time took (ms): " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000)<< endl;
     /*  End of program  */
     return 0;
 }
