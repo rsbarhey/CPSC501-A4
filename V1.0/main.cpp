@@ -321,12 +321,3 @@ void convolve(WaveFile *original, WaveFile *impulse, float y[], int P) {
 
     convolve(x, original->signalSize, h, impulse->signalSize, y, P);
 }
-
-void readInput(char *filename)
-{
-    WaveFile *waveObject = new WaveFile();
-    waveObject->ReadInput(filename);
-    cout << "Showing the first 100 samples in " << filename << endl;
-    for ( int i = 0; i < waveObject->signalSize; i++ )
-        cout <<  i << " : " << waveObject->signal[i] << endl;
-}
