@@ -191,6 +191,13 @@ void fft(float data[], int nn, int isign)
     {
         if (j > i)
         {
+            //float tmp = data[j];
+            //data[j] = data[i];
+            //data[i] = tmp;
+            
+            //tmp = data[j+1];
+            //data[j+1] = data[i+1];
+            //data[i+1] = tmp;
             SWAP(data[j], data[i]);
     		   SWAP(data[j+1], data[i+1]);
     	  }
@@ -235,10 +242,12 @@ void fft(float data[], int nn, int isign)
 void complexMultiplication(float compInput[],float compImpulse[],float compResult[], int size)
 {
     int i = 0;
+    int indexUsed;
     for(i = 0; i<size; i++)
     {
-        compResult[i*2] = compInput[i*2] * compImpulse[i*2] - compInput[i*2+1] * compImpulse[i*2+1];
-	     compResult[i*2+1] = compInput[i*2+1] * compImpulse[i*2] + compInput[i*2] * compImpulse[i*2+1];
+        indexUsed = i+i;
+        compResult[indexUsed] = compInput[indexUsed] * compImpulse[indexUsed] - compInput[indexUsed+1] * compImpulse[indexUsed+1];
+	     compResult[indexUsed+1] = compInput[indexUsed+1] * compImpulse[indexUsed] + compInput[indexUsed] * compImpulse[indexUsed+1];
     }
 }
 
